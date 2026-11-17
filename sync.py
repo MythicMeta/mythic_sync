@@ -15,7 +15,6 @@ from datetime import datetime, timedelta, timezone
 import aiohttp
 import redis
 from gql import Client, gql
-from gql.client import DocumentNode
 from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import TransportQueryError
 from graphql.error.graphql_error import GraphQLError
@@ -434,14 +433,9 @@ class MythicSync:
         return migrated
 
     @staticmethod
-    def _get_query_context(query: DocumentNode, variable_values: dict = None) -> tuple[str, str]:
+    def _get_query_context(query, variable_values: dict = None) -> tuple[str, str]:
         """Return a GraphQL operation name and serialized representation of its variables."""
         operation_name = "unnamed operation"
-        for definition in query.definitions:
-            if definition.name is not None:
-                operation_name = definition.name.value
-                break
-
         diagnostic_variables = {
             key: value if key in MythicSync.diagnostic_variable_names else "<redacted>"
             for key, value in (variable_values or {}).items()
@@ -475,7 +469,7 @@ class MythicSync:
 
     async def _execute_query(
             self,
-            query: DocumentNode,
+            query,
             variable_values: dict = None,
             retry: bool = True,
             retry_model_not_found: bool = True,
